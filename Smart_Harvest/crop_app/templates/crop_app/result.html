@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result - Smart Harvest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #ffffff; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .pop-in { animation: popIn 0.4s ease forwards; }
+    </style>
+</head>
+<body>
+
+<!-- navbar -->
+<nav class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2">
+            <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">🌾</div>
+            <div>
+                <p class="font-bold text-gray-800 text-base leading-none">Smart Harvest</p>
+            </div>
+        </a>
+        <div class="flex items-center gap-2 text-sm font-medium">
+            <a href="/"         class="hidden sm:block text-gray-500 hover:text-green-600 px-3 py-1">Home</a>
+            <a href="/history/" class="hidden sm:block text-gray-500 hover:text-green-600 px-3 py-1">History</a>
+            <a href="/about/"   class="hidden sm:block text-gray-500 hover:text-green-600 px-3 py-1">About</a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- result card -->
+<section class="max-w-xl mx-auto px-4 py-14">
+    <div class="bg-white border border-green-200 rounded-2xl shadow-sm p-8 text-center pop-in">
+
+        <div class="text-8xl mb-4">{{ emoji }}</div>
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">Our Recommendation</p>
+        <h1 class="text-5xl font-bold text-gray-800 capitalize mb-6">{{ crop }}</h1>
+
+        {% if confidence %}
+        <div class="mb-6">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Model Confidence</span>
+                <span class="font-bold text-green-600">{{ confidence }}%</span>
+            </div>
+            <div class="bg-gray-100 rounded-full h-3">
+                <div class="h-3 rounded-full bg-green-500" style="width: {{ confidence_width }}%"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-3 gap-3 mb-5 text-center">
+            <div class="bg-green-50 border border-green-100 rounded-xl p-3">
+                <div class="text-2xl mb-1">📅</div>
+                <p class="text-gray-400 text-xs">Season</p>
+                <p class="text-gray-700 font-bold text-xs mt-0.5">{{ season }}</p>
+            </div>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                <div class="text-2xl mb-1">💧</div>
+                <p class="text-gray-400 text-xs">Water Need</p>
+                <p class="text-gray-700 font-bold text-xs mt-0.5">{{ water }}</p>
+            </div>
+            <div class="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                <div class="text-2xl mb-1">🌡️</div>
+                <p class="text-gray-400 text-xs">Temperature</p>
+                <p class="text-gray-700 font-bold text-xs mt-0.5">{{ temp }}°C</p>
+            </div>
+        </div>
+
+        <div class="bg-green-50 border-l-4 border-green-500 px-4 py-3 rounded-r-xl text-sm text-green-800 text-left mb-6">
+            💡 {{ tip }}
+        </div>
+
+        <!-- input summary -->
+        <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Your Input Values</p>
+            <div class="grid grid-cols-4 gap-3 text-center text-xs">
+                <div><p class="text-gray-400">Nitrogen</p><p class="font-bold text-gray-700">{{ N }}</p></div>
+                <div><p class="text-gray-400">Phosphorus</p><p class="font-bold text-gray-700">{{ P }}</p></div>
+                <div><p class="text-gray-400">Potassium</p><p class="font-bold text-gray-700">{{ K }}</p></div>
+                <div><p class="text-gray-400">Rainfall</p><p class="font-bold text-gray-700">{{ rain }}mm</p></div>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <a href="/" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl text-sm transition-colors text-center">
+                🔄 Try Another
+            </a>
+            <a href="/history/" class="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition-colors text-center">
+                📋 View History
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<!-- footer -->
+<footer class="bg-gray-800 text-gray-300 py-8 px-4 mt-4">
+    <div class="max-w-6xl mx-auto text-center text-xs text-gray-500">
+        Smart Harvest — AI Crop Recommendation System
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Smart Harvest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #ffffff; }
+        .tip-card { transition: all 0.25s; }
+        .tip-card:hover { border-color: #16a34a; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav style="background-color: #9bcaa9; border-bottom: 2px solid #369758;" class="shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2">
+            <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">🌾</div>
+            <div>
+                <p class="font-bold text-gray-800 text-base leading-none">Smart Harvest</p>
+              
+            </div>
+        </a>
+        <div class="flex items-center gap-2 text-sm font-medium">
+            <a href="/"         class="hidden sm:block text-gray-700 hover:text-green-700 px-3 py-1">Home</a>
+            <a href="/history/" class="hidden sm:block text-gray-700 hover:text-green-700 px-3 py-1">History</a>
+            <a href="/about/"   class="hidden sm:block text-green-700 border-b-2 border-green-700 pb-0.5">About</a>
+            {% if not user.is_authenticated %}
+            <a href="/register/" class="bg-white text-green-700 border border-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm font-semibold">
+                Sign Up
+            </a>
+            <a href="/login/" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                Sign In
+            </a>
+            {% else %}
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-green-100 border border-green-300 px-3 py-1.5 rounded-lg">
+                    <div class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <span class="text-green-700 font-semibold text-sm hidden sm:inline">{{ user.username }}</span>
+                </div>
+                <a href="/logout/" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg transition-colors text-sm font-semibold">
+                    Log Out
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+
+<!-- page hero -->
+<section class="bg-green-600 text-white py-14 px-4 text-center">
+    <h1 class="text-4xl font-bold mb-3">About Smart Harvest</h1>
+    <p class="text-green-100 text-sm max-w-xl mx-auto leading-relaxed">
+        A simple project that uses machine learning to help farmers decide which crop to grow based on their soil and weather conditions.
+    </p>
+</section>
+
+
+<!-- about project -->
+<section class="max-w-6xl mx-auto px-4 py-14">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div>
+            <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-2">📌 The Project</p>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">What is Smart Harvest?</h2>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                Smart Harvest is a crop recommendation system. A farmer enters 7 details about their farm — things like how much nitrogen is in the soil, the local temperature, and how much rain falls every year.
+            </p>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                The system then runs those numbers through 3 different machine learning models and picks the best one to give a crop recommendation. It also shows how confident the model is about its answer.
+            </p>
+            <p class="text-gray-500 text-sm leading-relaxed">
+                The goal was to build a full-stack web application that combines data science, a Django backend and a clean frontend — all working together.
+            </p>
+        </div>
+        <div class="rounded-2xl overflow-hidden shadow-md">
+            <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=380&fit=crop"
+                 alt="Farmer checking crops" class="w-full h-72 object-cover">
+        </div>
+    </div>
+</section>
+
+
+<!--how it works-->
+<section class="bg-gray-50 border-t border-gray-100 py-14 px-4">
+    <div class="max-w-6xl mx-auto">
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">⚙️ The Process</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">How Does It Work?</h2>
+        <p class="text-gray-500 text-sm mb-10">From entering your details to getting a recommendation — here is what happens behind the scenes</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">📝</div>
+                <div class="text-green-600 text-xs font-bold mb-2">STEP 1</div>
+                <h3 class="font-bold text-gray-800 text-sm mb-2">You Enter Your Details</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">You fill in 7 values about your farm — nitrogen, phosphorus, potassium, temperature, humidity, soil pH and rainfall.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">⚖️</div>
+                <div class="text-green-600 text-xs font-bold mb-2">STEP 2</div>
+                <h3 class="font-bold text-gray-800 text-sm mb-2">Data is Normalised</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">The 7 numbers are scaled to the same range so the model can compare them fairly. This is called feature scaling and it makes the model more accurate.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">🤖</div>
+                <div class="text-green-600 text-xs font-bold mb-2">STEP 3</div>
+                <h3 class="font-bold text-gray-800 text-sm mb-2">ML Model Predicts</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">The best trained model looks at your values and predicts which of the 22 crops would grow best in those conditions. It was trained on 2,200 examples.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+                <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">🌾</div>
+                <div class="text-green-600 text-xs font-bold mb-2">STEP 4</div>
+                <h3 class="font-bold text-gray-800 text-sm mb-2">Result Shown</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">The crop name, confidence percentage, season, water requirement and a growing tip are all shown back to you instantly — no page reload needed.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- 3 ML models -->
+<section class="max-w-6xl mx-auto px-4 py-14">
+    <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">🤖 Machine Learning</p>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">The 3 Models We Used</h2>
+    <p class="text-gray-500 text-sm mb-8">We trained 3 different models and picked the one with the best accuracy for predictions</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+        <div class="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="bg-blue-600 px-5 py-4">
+                <div class="text-2xl mb-1">📈</div>
+                <h3 class="text-white font-bold text-base">Logistic Regression</h3>
+            </div>
+            <div class="p-5">
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                    This is the simplest model. It draws a straight line to separate different crop groups from each other. Think of it like sorting fruits into baskets by drawing lines between them.
+                </p>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Very fast to train</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Easy to understand</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-red-400 font-bold mt-0.5">✗</span>
+                        <span class="text-gray-500">Not great when data is complex</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-center bg-blue-50 text-blue-700 font-semibold py-2 rounded-lg">
+                    Accuracy: ~90%
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-orange-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="bg-orange-500 px-5 py-4">
+                <div class="text-2xl mb-1">🔍</div>
+                <h3 class="text-white font-bold text-base">K-Nearest Neighbors</h3>
+            </div>
+            <div class="p-5">
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                    This model looks at the 5 most similar examples from the training data and picks whatever crop appears the most. Like asking your 5 neighbours what they grow and going with the majority.
+                </p>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Works well with clear patterns</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Easy to explain to anyone</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-red-400 font-bold mt-0.5">✗</span>
+                        <span class="text-gray-500">Gets slow on very large data</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-center bg-orange-50 text-orange-700 font-semibold py-2 rounded-lg">
+                    Accuracy: ~90%
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-green-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="bg-green-600 px-5 py-4">
+                <div class="text-2xl mb-1">🌲</div>
+                <h3 class="text-white font-bold text-base">Random Forest ⭐ Best</h3>
+            </div>
+            <div class="p-5">
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                    This model builds 100 decision trees and takes a vote from all of them. It is like asking 100 experts instead of just one — the majority decision is usually right. This gave us the best accuracy.
+                </p>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Very accurate on complex data</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-green-500 font-bold mt-0.5">✓</span>
+                        <span class="text-gray-500">Rarely overfits</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-red-400 font-bold mt-0.5">✗</span>
+                        <span class="text-gray-500">Takes more memory than others</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-center bg-green-50 text-green-700 font-semibold py-2 rounded-lg">
+                    Accuracy: ~95% ✅
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- data science steps used -->
+<section class="bg-gray-50 border-t border-gray-100 py-14 px-4">
+    <div class="max-w-6xl mx-auto">
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">📊 Data Science</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">What Data Science Steps Did We Do?</h2>
+        <p class="text-gray-500 text-sm mb-8">Here are the main steps we followed to build and train the machine learning model</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">📦</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">1. Created a Dataset</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">We generated a dataset with 2,200 rows — 100 samples for each of the 22 crops. Each row has 7 features like nitrogen level, temperature, rainfall etc. This dataset was used to train our models.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">🔢</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">2. Label Encoding</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">Machine learning models only understand numbers, not words. So we converted crop names like "rice" and "maize" into numbers like 0, 1, 2 etc. This is called Label Encoding.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">⚖️</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">3. Feature Scaling</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">Nitrogen can be between 0 and 200 while rainfall can be 0 to 500. These different ranges confuse models. We used Standard Scaler to bring all features to the same scale so they are compared fairly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">✂️</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">4. Train and Test Split</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">We split the data — 80% for training the model and 20% for testing it. The model never sees test data during training, so the test accuracy tells us how it performs on completely new data.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">🏋️</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">5. Model Training</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">All 3 models were trained on the training data. The model learns patterns — for example it learns that rice grows when nitrogen is high and humidity is above 80%. It saves these patterns for later use.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">🏆</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1">6. Picking the Best Model</h4>
+                        <p class="text-gray-500 text-xs leading-relaxed">After testing all 3 models we compare their accuracy scores. The model with the highest score is saved and used for live predictions. In our case Random Forest won with about 95% accuracy.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- input feature table -->
+<section class="max-w-6xl mx-auto px-4 py-14">
+    <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">📋 Input Details</p>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">What Do the 7 Inputs Mean?</h2>
+    <p class="text-gray-500 text-sm mb-8">Here is a simple explanation of each value the system asks you to enter</p>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-green-600 text-white text-xs uppercase">
+                <tr>
+                    <th class="px-5 py-3 text-left">Input</th>
+                    <th class="px-5 py-3 text-left">What it Means</th>
+                    <th class="px-5 py-3 text-center">Unit</th>
+                    <th class="px-5 py-3 text-center">Range</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🟤 Nitrogen (N)</td>
+                    <td class="px-5 py-3 text-gray-500">Helps the plant grow leaves. Get this from your soil test report.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">mg/kg</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 200</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🟠 Phosphorus (P)</td>
+                    <td class="px-5 py-3 text-gray-500">Helps roots and flowers grow strong. Also from your soil test.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">mg/kg</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 200</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🟡 Potassium (K)</td>
+                    <td class="px-5 py-3 text-gray-500">Makes the plant stronger and improves fruit quality.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">mg/kg</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 300</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🌡️ Temperature</td>
+                    <td class="px-5 py-3 text-gray-500">The average temperature in your area throughout the growing season.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">°C</td>
+                    <td class="px-5 py-3 text-center text-gray-400">-10 – 55</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">💧 Humidity</td>
+                    <td class="px-5 py-3 text-gray-500">How much moisture is in the air. Higher means more humid weather.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">%</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 100</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🔬 Soil pH</td>
+                    <td class="px-5 py-3 text-gray-500">How acidic or alkaline your soil is. 7 is neutral. Below 7 is acidic.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">—</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 14</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-bold text-gray-700">🌧️ Rainfall</td>
+                    <td class="px-5 py-3 text-gray-500">The average yearly rainfall in your region. Check your local weather data.</td>
+                    <td class="px-5 py-3 text-center text-gray-400">mm</td>
+                    <td class="px-5 py-3 text-center text-gray-400">0 – 500</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- tech used -->
+<section class="bg-gray-50 border-t border-gray-100 py-14 px-4">
+    <div class="max-w-6xl mx-auto">
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">🛠️ Technologies</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">What We Built This With</h2>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+                <div class="text-3xl mb-2">🐍</div>
+                <h4 class="font-bold text-gray-700 text-sm">Python</h4>
+                <p class="text-gray-400 text-xs mt-1">Main language used for everything</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+                <div class="text-3xl mb-2">🌐</div>
+                <h4 class="font-bold text-gray-700 text-sm">Django</h4>
+                <p class="text-gray-400 text-xs mt-1">Web framework to build the site</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+                <div class="text-3xl mb-2">🤖</div>
+                <h4 class="font-bold text-gray-700 text-sm">Scikit-learn</h4>
+                <p class="text-gray-400 text-xs mt-1">Python library for ML models</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+                <div class="text-3xl mb-2">🎨</div>
+                <h4 class="font-bold text-gray-700 text-sm">Tailwind CSS</h4>
+                <p class="text-gray-400 text-xs mt-1">For styling and making it look nice</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+                <div class="text-3xl mb-2">⚡</div>
+                <h4 class="font-bold text-gray-700 text-sm">JavaScript</h4>
+                <p class="text-gray-400 text-xs mt-1">For live results without page reload</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- footer-->
+<footer class="bg-gray-800 text-gray-300 py-12 px-4">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">🌾</div>
+                <span class="text-white font-bold text-lg">Smart Harvest</span>
+            </div>
+            <p class="text-gray-400 text-sm leading-relaxed">A machine learning crop recommendation system made to help farmers grow the right crop at the right time.</p>
+        </div>
+
+        <div>
+            <h4 class="text-white font-semibold mb-3">Quick Links</h4>
+            <div class="space-y-2 text-sm">
+                <a href="/"         class="block hover:text-green-400 transition-colors">🏠 Home</a>
+                <a href="/history/" class="block hover:text-green-400 transition-colors">📋 History</a>
+                <a href="/about/"   class="block hover:text-green-400 transition-colors">ℹ️ About</a>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-white font-semibold mb-3">📬 Contact Us</h4>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">✉️</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Email</p>
+                        <a href="mailto:info@smartharvest.in" class="hover:text-green-400 transition-colors text-xs">info@smartharvest.in</a>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">📞</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Phone</p>
+                        <a href="tel:+91123456789" class="hover:text-green-400 transition-colors text-xs">+91 123-456-789</a>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">📍</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Location</p>
+                        <p class="text-gray-300 text-xs">Phagwara, Punjab, India</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="max-w-6xl mx-auto border-t border-gray-700 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p class="text-gray-500 text-xs">© 2026 Smart Harvest. All rights reserved.</p>
+        <div class="flex gap-4 text-xs text-gray-500">
+            <a href="#" class="hover:text-green-400 transition-colors">Privacy Policy</a>
+            <a href="#" class="hover:text-green-400 transition-colors">Terms of Use</a>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

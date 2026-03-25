@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Harvest - Crop Recommendation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #ffffff; }
+
+        .input-field {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .crop-card .card-img { transition: transform 0.4s ease; }
+        .crop-card:hover .card-img { transform: scale(1.05); }
+
+        .tip-card { transition: all 0.25s; }
+        .tip-card:hover { border-color: #16a34a; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+
+        @keyframes growBar { from { width: 0%; } }
+        .bar-fill { animation: growBar 0.9s ease forwards; }
+
+        @keyframes popIn { from { opacity: 0; transform: scale(0.93); } to { opacity: 1; transform: scale(1); } }
+        .pop-in { animation: popIn 0.35s ease forwards; }
+
+        @keyframes shimmer {
+            0%   { background-position: -500px 0; }
+            100% { background-position: 500px 0; }
+        }
+        .shimmer {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- navbar -->
+<nav style="background-color: #7bb48c; border-bottom: 2px solid #369758;" class="shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2">
+            <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">🌾</div>
+            <div>
+                <p class="font-bold text-gray-800 text-base leading-none">Smart Harvest</p>
+            </div>
+        </a>
+        <div class="flex items-center gap-2 text-sm font-medium">
+            <a href="/" class="hidden sm:block text-green-800 border-b-2 border-green-600 pb-0.5">Home</a>
+            <a href="/history/" class="hidden sm:block text-gray-800 hover:text-green-700 px-3 py-1">History</a>
+            <a href="/about/" class="hidden sm:block text-gray-800 hover:text-green-700 px-3 py-1">About</a>
+
+            {% if not user.is_authenticated %}
+            <a href="/register/" class="bg-white text-green-700 border border-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm font-semibold">
+                Sign Up
+            </a>
+            <a href="/login/" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                Sign In
+            </a>
+            {% else %}
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-green-100 border border-green-300 px-3 py-1.5 rounded-lg">
+                    <div class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <span class="text-green-700 font-semibold text-sm hidden sm:inline">{{ user.username }}</span>
+                </div>
+                <a href="/logout/" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg transition-colors text-sm font-semibold">
+                    Log Out
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+
+<!-- hero -->
+<section class="relative border-b border-gray-100 overflow-hidden" style="min-height: 420px;">
+    <div class="absolute inset-0">
+        <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&h=500&fit=crop&q=80"
+             alt="Green farm field" class="w-full h-full object-cover">
+        <div class="absolute inset-0" style="background: rgba(0,0,0,0.38);"></div>
+    </div>
+    <div class="relative z-10 flex flex-col items-center justify-center text-center px-4 py-20">
+        <h1 class="text-5xl sm:text-6xl font-bold leading-tight mb-5"
+            style="color: #ffffff; text-shadow: 0 2px 16px rgba(0,0,0,0.7);">
+            Find the Best Crop<br>
+            <span style="color: #86efac;">for Your Farm</span>
+        </h1>
+        <p class="text-base leading-relaxed mb-8 max-w-2xl font-medium"
+           style="color: #ffffff; text-shadow: 0 1px 8px rgba(0,0,0,0.65);">
+            Enter your soil test results and local weather details below. Our system uses 3 machine learning models — <strong>Random Forest</strong>, <strong>KNN</strong> and <strong>Logistic Regression</strong> — to suggest the best crop you can grow.
+        </p>
+        <div class="flex flex-wrap gap-3 justify-center">
+            <span class="bg-white/20 backdrop-blur border border-white/30 text-white text-xs px-4 py-2 rounded-lg font-medium">📊 22 Crops Supported</span>
+            <span class="bg-white/20 backdrop-blur border border-white/30 text-white text-xs px-4 py-2 rounded-lg font-medium">🤖 3 ML Models</span>
+            <span class="bg-white/20 backdrop-blur border border-white/30 text-white text-xs px-4 py-2 rounded-lg font-medium">✅ 95%+ Accuracy</span>
+            <span class="bg-white/20 backdrop-blur border border-white/30 text-white text-xs px-4 py-2 rounded-lg font-medium">⚡ Instant Results</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- form + result -->
+<section class="max-w-6xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- form -->
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-7">
+            <h2 class="text-xl font-bold text-gray-800 mb-1">🔬 Enter Your Farm Details</h2>
+            <p class="text-gray-400 text-sm mb-6">Fill in values from your soil test report and weather</p>
+
+            <form id="cropForm">
+                {% csrf_token %}
+
+                <p class="text-xs font-bold text-green-700 uppercase tracking-widest mb-3">Soil Nutrients (mg/kg)</p>
+                <div class="grid grid-cols-3 gap-3 mb-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Nitrogen (N)</label>
+                        <input type="number" id="nitrogen" name="nitrogen" class="input-field" placeholder="e.g. 80" min="0" max="200" step="0.1" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Phosphorus (P)</label>
+                        <input type="number" id="phosphorus" name="phosphorus" class="input-field" placeholder="e.g. 50" min="0" max="200" step="0.1" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Potassium (K)</label>
+                        <input type="number" id="potassium" name="potassium" class="input-field" placeholder="e.g. 60" min="0" max="300" step="0.1" required>
+                    </div>
+                </div>
+
+                <p class="text-xs font-bold text-green-700 uppercase tracking-widest mb-3">Weather & Soil Info</p>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Temperature (°C)</label>
+                        <input type="number" id="temperature" name="temperature" class="input-field" placeholder="e.g. 28" min="-10" max="55" step="0.1" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Humidity (%)</label>
+                        <input type="number" id="humidity" name="humidity" class="input-field" placeholder="e.g. 75" min="0" max="100" step="0.1" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Soil pH</label>
+                        <input type="number" id="ph" name="ph" class="input-field" placeholder="e.g. 6.5" min="0" max="14" step="0.01" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Rainfall (mm)</label>
+                        <input type="number" id="rainfall" name="rainfall" class="input-field" placeholder="e.g. 120" min="0" max="500" step="0.1" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                    <span id="btnText">🌾 Get Crop Recommendation</span>
+                    <svg id="spinner" class="hidden animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- result -->
+        <div>
+            <!-- Waiting state -->
+            <div id="defaultPanel" class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden h-full flex flex-col">
+                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=220&fit=crop"
+                     alt="Farmer in field" class="w-full h-48 object-cover">
+                <div class="p-6 flex flex-col items-center justify-center text-center flex-1">
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">Your Result Will Show Here</h3>
+                    <p class="text-gray-400 text-sm">Fill in the form on the left and click <strong>Get Crop Recommendation</strong></p>
+                </div>
+            </div>
+
+            <!-- Loading state -->
+            <div id="loadingPanel" class="hidden bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+                <div class="shimmer h-7 w-1/2 mx-auto mb-6"></div>
+                <div class="shimmer h-28 mb-4"></div>
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div class="shimmer h-16"></div>
+                    <div class="shimmer h-16"></div>
+                    <div class="shimmer h-16"></div>
+                </div>
+                <div class="shimmer h-10"></div>
+            </div>
+
+            <!-- Result state -->
+            <div id="resultPanel" class="hidden bg-white border border-green-200 rounded-2xl shadow-sm p-7 pop-in">
+                <div class="text-center mb-5">
+                    <div id="resEmoji" class="text-7xl mb-2"></div>
+                    <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">Recommended Crop</p>
+                    <h2 id="resCrop" class="text-4xl font-bold text-gray-800 capitalize"></h2>
+                </div>
+
+                <div id="confSection" class="mb-5">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Model Confidence</span>
+                        <span id="confText" class="font-bold text-green-600"></span>
+                    </div>
+                    <div class="bg-gray-100 rounded-full h-3">
+                        <div id="confBar" class="bar-fill h-3 rounded-full bg-green-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+                    <div class="bg-green-50 border border-green-100 rounded-xl p-3">
+                        <div class="text-2xl mb-1">📅</div>
+                        <p class="text-gray-400 text-xs">Season</p>
+                        <p id="resSeason" class="text-gray-700 font-bold text-xs mt-0.5"></p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                        <div class="text-2xl mb-1">💧</div>
+                        <p class="text-gray-400 text-xs">Water Need</p>
+                        <p id="resWater" class="text-gray-700 font-bold text-xs mt-0.5"></p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                        <div class="text-2xl mb-1">🤖</div>
+                        <p class="text-gray-400 text-xs">ML Model</p>
+                        <p class="text-gray-700 font-bold text-xs mt-0.5">Best Model</p>
+                    </div>
+                </div>
+
+                <div id="resTip" class="bg-green-50 border-l-4 border-green-500 rounded-r-xl px-4 py-3 text-sm text-green-800 mb-5"></div>
+
+                <div class="flex gap-3">
+                    <button onclick="resetForm()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                        🔄 Try Again
+                    </button>
+                    <a href="/history/" class="flex-1 text-center bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                        📋 History
+                    </a>
+                </div>
+            </div>
+
+            <!-- Error state -->
+            <div id="errorPanel" class="hidden bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <div class="text-5xl mb-3">⚠️</div>
+                <h3 class="text-red-700 font-bold text-lg mb-2">Something Went Wrong</h3>
+                <p id="errorMsg" class="text-red-500 text-sm mb-5"></p>
+                <button onclick="resetForm()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-700">
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- crop buttons -->
+    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 mt-6">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">💡 Click any crop to auto-fill example values</p>
+        <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            <button onclick="fillForm(80,50,40,28,85,6.5,180)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🌾</span><span class="text-xs font-semibold text-gray-600">Rice</span>
+            </button>
+            <button onclick="fillForm(70,60,70,25,65,6.0,90)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🌽</span><span class="text-xs font-semibold text-gray-600">Maize</span>
+            </button>
+            <button onclick="fillForm(100,85,60,32,80,6.2,150)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🍌</span><span class="text-xs font-semibold text-gray-600">Banana</span>
+            </button>
+            <button onclick="fillForm(20,130,200,25,82,6.2,90)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🍇</span><span class="text-xs font-semibold text-gray-600">Grapes</span>
+            </button>
+            <button onclick="fillForm(120,50,30,35,70,7.0,80)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🌸</span><span class="text-xs font-semibold text-gray-600">Cotton</span>
+            </button>
+            <button onclick="fillForm(15,20,20,20,92,6.2,150)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🍊</span><span class="text-xs font-semibold text-gray-600">Orange</span>
+            </button>
+            <button onclick="fillForm(10,20,45,30,90,6.5,130)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">🥥</span><span class="text-xs font-semibold text-gray-600">Coconut</span>
+            </button>
+            <button onclick="fillForm(90,40,40,26,85,6.0,200)" class="flex flex-col items-center gap-1 bg-white hover:bg-green-50 border border-gray-200 hover:border-green-400 rounded-xl py-2 px-1 transition-all hover:scale-105 cursor-pointer">
+                <span class="text-2xl">☕</span><span class="text-xs font-semibold text-gray-600">Coffee</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<!-- crop info cards -->
+<section class="bg-gray-50 border-t border-gray-100 py-14">
+    <div class="max-w-6xl mx-auto px-4">
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">🌱 Crop Encyclopedia</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Know Your Crops</h2>
+        <p class="text-gray-500 text-sm mb-8">Learn about each crop — what it needs, when to grow it, and why it's important</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+            <!-- Rice -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://plus.unsplash.com/premium_photo-1674654419403-1a80edb26881?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cmljZSUyMGltYWdlc3xlbnwwfHwwfHx8MA%3D%3D" alt="Rice paddy field green" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🌾 Rice</h3>
+                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Kharif</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">The most important food crop in India. It grows in flooded fields and loves warm, humid weather. More than half the world eats rice as their main food.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">20 – 35°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">150 – 300 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.5 – 7.0</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">Very High 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maize -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&h=200&fit=crop&q=80" alt="Maize corn field" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🌽 Maize</h3>
+                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Kharif</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">Also called corn. It grows fast and gives high yield. Used for eating, animal feed, and making biofuel. Very popular among farmers across India.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">18 – 35°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">60 – 120 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.5 – 7.5</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">Medium 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mango -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=400&h=200&fit=crop&q=80" alt="Mango tree" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🥭 Mango</h3>
+                        <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">Summer</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">The king of fruits in India! It loves hot weather when flowering. India is the world's biggest producer of mangoes. Needs dry weather before harvest.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">24 – 40°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">90 – 200 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.5 – 7.5</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">Medium 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cotton -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="data:image/jpeg;base64,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
+                    " alt="Cotton white bolls" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🌸 Cotton</h3>
+                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Kharif</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">Called "White Gold" by farmers. It is used to make cloth and is the most important cash crop in India. Needs black soil and lots of sunlight.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">21 – 45°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">60 – 110 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">6.0 – 8.0</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">High 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coffee -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&h=200&fit=crop&q=80" alt="Coffee plants" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">☕ Coffee</h3>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Year Round</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">Grown in the hills of Karnataka and Kerala. Loves shade and cool temperatures. One of the most traded crops in the world and gives good income to farmers.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">15 – 28°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">150 – 300 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">6.0 – 6.5</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">High 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coconut -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhUTExMWFRUXGRgYGBgVFxYaGBcXHRgXGBgZFxcYHSggGh0lGxcXITEhJSkrLi4uGB8zODMtNygtLisBCgoKDg0OGxAQGy8lICUtLS0tLy0tLS0tLy0tLS0tLy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIALcBEwMBIgACEQEDEQH/xAAcAAACAgMBAQAAAAAAAAAAAAAEBQMGAAIHAQj/xABCEAACAQIEAwYDBQcDAwMFAAABAhEAAwQSITEFQVEGEyJhcYEHMpEjQqGx0RRSYoLB4fAzcvGSssJTk6IIFRckQ//EABkBAAMBAQEAAAAAAAAAAAAAAAABAgMEBf/EACwRAAICAQMDAwIGAwAAAAAAAAABAhEhAxIxE0FRImHwFDIEcYGhweFCkdH/2gAMAwEAAhEDEQA/ADsPRJxOWoLOgoa8ZNefwdAR+0ZjUi3K0w6ipwopAF2kzCtIg15auRpQXabiq2bLMd40qxFc7ddqIBtW215xXO1cnzNR4rEl3LHcmvcODOxrVRpFE+Y+9b23nyIrFYGvQtBaCrV7rWt54YEHSaywQw9N68nKwBGlQXYzvXjQWIuMDrsaIZvFHKosSuYEe9SimGYbkaY4u2SARSS6kKpnenuHYm2D5VMiom2GXw+dausnzrWzoN6iv3grTz50kxtD3g/Grlpgjar16VYMd2ss2o+8egrm2K4kdoPtQ9287sWgDSNd/rRb7EOEXll14h2vN7wpKiRtv9eVL34kQSAYA5z+ZNITgroAMEDfT+povhli7ccI2WDMeZGuX3qZWXBQSGFlixBLk9AGNTDF3BtcaT1NAcPUXvAJskE/PIGnnU0wSpIMbwZGnQ1m7NltYW/FbmklgOo11qW1xhwwh9ByI3pc7v6odo5frWLcEhXEjrH4UWxOMfBc8LxkEeJalw/Ereb5qrttrckKSNomvLxO+mnSqWozF6MS6vDChu61qr4fi1xdAZ8vKrHgeJW7igzB5g71qp2c89JxJu4qM2gDRmYEaGhntmrZmjGtSKXY0EIY3Og9aMa/kEsYFa4de8+0Og+6PLrS5DgVWbUAA6msoq5mk5VkcjXtRtK3GhFC3koln0qPODTYjbDiBU01oritnXSkATZg1zr4mcQm4tsHQVa+J8RFpMxMVzXiTHEXS5PpVw8sKFdbrecb0bgeDX7zZbVst58vrtVw4f8ADa4wDX7hA/dtj/yP9BW/IOSiUrAYe9eDtasvcCCXKKSFHnFb4CX+UFuWgJr6S7KcOw+Gw+S0iqDvA39etV/hfZpbmId7aKiZsxIAAkGZA5nzpuGCVrexxuzwjEqr3ks3DaSM5ykQDz11I6xtXouKwBr6ktYBFTLGhEHz6zXzt8R+xz4C+Xtg/s1wyh5I25Q9PL+1RKFGkNS8Ch4neoEc5pJ/vQ1t82jVvb0J1+tZ0a2HXLwKZY9KKwV2bU5oG2lA3mQZTqBHin+lLWxUjKuizNKrKumOMZiBGVDPnNDJiFUaaseutB2iZjlUugJhZPOltHuC/MnX1re3fQb60ASx9eQry3hCRuQedNITY8/+4T4UB131ge/Wj8NcYR/p5dNJ8QI2I6UtweCgAwTp5fiK3FjQnM2ZToI08iCKylk1iN8f8wuZTkcEnnDT4h77+9L2w2YZtR5roR0rfA3WCOrd4yjxjTmBqPofwoK7iFImdNyFkMPY1KsrBLabEW38SsyHmWSB+hpthrqv8xCnb1PQxzpNg7JW4ro2ZWGpYg8tAy0zs2tyERWOvl9FNEhJMJw1tQSIInrrrWsuoKqYJ6iZFa2hdYgeEFTrpOnkaNv3WGjIpaNxoSfKpodgdwkRAJra40wRIj2NTti1Cy4K9Y1ANegK0MpzLz0q00S75DcHxbKuUgk8m6etNbuJuCJZcpG4GtVhkynwjQ094DxMMwt3FG3hNUn2MdTTxuR7j7tmPHdkjWJ/pUuBuvdIgFLXOdC3kOgo3FYK2DORZ9K1zQKruYWFyOVZUCTFZVk0K5G1aXEg1o5ipWeRWdlGoaib9yLZPQUpvYkLqdqsHBuEm8s3lIQ7L1/3fpVQi5PApNLk5jes3cSzMwdlBMBBNXDsz2TVgO8QCNQvM/7j/Sr6uEVEyWUUACNBAArbB4YKJ510LSS5IlrNqlgUpgQgyooUeQinlvGotsKw2EUFiDBpbjbukVTkZpB2PxuVcqnenXZ3EqUAHLlVJzyNaKwWMKGQaW8e06XaaRrSTthwFMXh3svsw0I3VhqrDzBojg/EO8XzFNWEir5Qk2ng+QuNYZ8LfezcHiQxPJhyYeRFRrfDDMK638dOyRe2MbbHitaXI5253/lJ+hNcRDn5RtUbDdagwa+WVl962wrCCDpQmCIzRO4IrZbmmtJrsUpdxladJ0B2IJ86mGxOsbT1pWl2SOXtRBbSBqBWbiaKROBrodqmF+D0nehUtzsNqlRNScvygtqelJoqw2zi5aA/OIqZ8REBrgXWAN/xpWlvpvr+NYltgJbUcvL0qXAanRbeH4pc4U3E9CQJn36Go/2QjNmExIEZSN6rXEkRmziIEH3gaUQ/eJcZ7ZIUw2+gnXb1mo6fuXv9hycIg1Ahp8oNELYdFzlQEGjeUnSPeteAX3cPfvIh0yJImCN2X1mKb8PQFsjf6dwZGj2IPsYNRLwyk+6FWGuERMmOY586mvXTqTMctf8AIrTEfZ3DauSGQkZhIDDlHlzmtrV9AsKSZI3GkeRqS3TJcQ8qAYadZA3HQjrUQTKAUkAnUfu+1FWXyCI0BJI0grtWYi2qgsNfMfu9D6UEnttw0htGX8R/WtUbxSNGFbPZETHIa/1rFfUHpoaBlh4Rjjdt+L5hoaKAqvcMxBt3Z+6+h8qsNkzMVqnZx6kdsiRTGlZXpIrKszK81zUDyNRPjQGVBqzHQD8z0FKOIcQfvMloZnj2Hr51aux/ZljF27JcmZ/p6UoQcmOb2osfBcAGM5FjnpVkXBLERHpU2EwoRYjWpDXZwc3IGbIAMCl13Sm1w0tvrrSbGhbiDSvGDSm+It0txCVmyhcq17bXWpsleZKVAOOz+NyPBOhq8WXkVzENBBq8cBxJa2pmtIPsSwjilgXEZWWQQQR1B0r5O7T8NOFxF20cujsAoPiCzK5hy8MV9f3NRXBfjxwMd5bvoBmYEN5xqP6035Lg+Ucqt3AGnzBFSXTDEedBW30ijMSpIV+RAE+Y3oayUnaCLNyNd4G1b4e9Oka0EjipkcdfpvUOJpGQXsZFGWh4WadCMo9yC1LVYjbX862/a5gGRA09SdT61Diy7QfBCwBM7VDfuFdx9KFOIPU6ULicQx01J5evlTUWxOSRdOxOATEd49ye7UhYG7MRMA8uWtXFbdq2Ctu0gQkSGGfUbatrQ3ZDhBw2FRWHjPjb/c3L2EUzxNpUEufMAbn16Vyzk3J1warjIoxF5QWnlEwNPSlty8DcEHKuwmOfPyo3GnLoNQ28dSOXtQT4XNGYQOQ/U0RjnI3LGDMf4hLFSQMoJPzDofOOdad3mUjLvoBoIP8AnOjcHhUkuxBFuG118gIO++1ZicTYZoUm2XBzLC5VbTLB5BunKhlQYI7MoUKQyoRI5kHRh59ane0qFla5CZtCQTqTAmOVC3VKlZUrJ95B6f12ohMa4GXIjKdDuDrvPWk8lhCaeGQekHcVG6Q29D2bBFwhNVMrB0K6aQanYNAzb7QfLzFIESFuVW3gpBtj/NapucU27PXnlgp0qoumZ6sbiWU2aygy93+GsrTcctEnZrgNu2BCidyTqSeZJq+4C0By2pFwqwE0FWOyIFdUTBkhqNq3JrUmmIGxG1LrlMMRS+4aQAl+gbq0wuUFepMYCUqNxRLVA4qRkJqz9lLhyEHYExVYarjwLDZLajn/AHmqjyJjzPpXNPi7ZDWEPMPOnTb+tdFc6Vzb4jYsHMnRR9S4/SjVdRL0Fc0cM43ghbZW5POgjlA/rUCMXt5R9wzvyP8AemHbC3D2yIIKmCOYn86T4S7laeR0PoaIZgmXN1No9T6VvnFb3FiR94HTzWo8Imd1SYzGKrkng9tyxAG56V0XsV2PF20Xv/K2kaS2vKdgOvWveyHYa2xN12aB8p0GY846L510O0qoFVV20EcgOVc2pqrhG0IPlnH+0XZG9hnIRvAfEhJgx09RVg7DdgbouriL8GPEib6/vNI030rodyxmBzqGA5EAweR12ofinEhbUhCC3ly/SKl6rrI9mcAfFcW1oi2iAuQfETpy5UnvjMzHc6ZjHOP+NKecE4N35D3rjAOdVUDNl+6Q86Dyirjw/sjhEMwzgRC3GlR/KAM3800R0ZSz2B6sY47nL7PDrmRrzK2QT4wGyAbfNtNC3bubYEcvM13PiOHtXLT2mjIylSBppHLpXBu5IciZIJEctJ/GjUhsDTnvDeA4XM7owhcsnmSVkjT2qr3GzuysPtD45/enU78wT9KtXB7uW+g1AbwEnfUHaqxxbCNZvvBHhJC5hJkaAj2g+9QjZG5x7FArDMFIiRqDGwO4E0Wt1mUZVGvmZj6aUJh8ReuaOk7EHK2p5zEetH201JiNusVDNUa4vDkgGYIBO59IoYYgqCS2okwefpRmKvZQ0gclAP70hj+AP1FAWFW6mXSSSwIB0nQg/hVx4M5c4IMZxS2gG5Y/h1qwdkMfJEnQz9ap+Nw6qxUGcuk074CT3YXYTpHWrmklaM4tytM6StxeorKrdrCwAC0nzJrKjcR00Xrh2JObWrThnDLpVFW8A01ZeGY2Br7iu2JyMcha1Za1t3lbY/rUhFUIEvUuurTK8KAvCpABeg79GXJO1A4jTekxkNR3RUyjSiLHDWfU+FBux0Ee9SkFg/CcCblwaeEGSeXpV1tYcAVTr3bDCYUrbVXcb5lHgOsEhj83qBypD2g+IWILslnIiDZlGZm011I/Ie9PqRiWtKci6dpeN2sMsu+p2USWPsK452l4q158xB8RkKTB5ASfTlXty4WJZ2Jbdiza68yT6daFxqw9vMBlnXxDXxAwSDpt+BrCepu5OrT0VESdtcERatsMxVSRzIQsZIbTwnaNdQPWKiKccZx5NxirPJBTosKco0B12O/rSvD2ixCqJJ2Arp0k1HJz61Sng972Rruux8uldB7Bdk1vZbzDwD52OktyRPzJpb2a7A3L/wBpcYJbBE9WE6hep0rrVru7aKqgIixCjQADc/3rHV1V9sS9PTazIKt240AAUDTkABT7hnD1a3B0Y6zzB8qS8EZMYYWWtI2p1gsNQobnrqfTzq72sMBtRo6fdk606e1FBxfZXFozFHDBtyGK+nhNILWHkknQCQTzZv8AOddcx99LdtncwAPeToAPOa5bcED9ab0Ip2Ja8qHfZg5nAq6XsK+U5SoaDGYEiY0mOU1z/s9dy3F9a6XYaQK1hkxYE+DJX54PkK4Zi8UQ7LIJDN11OYgke819CEVwjtVgTZxt22QPnZwYiVfxr+ce1ZfiI4TOj8M8tAGHxyrcVn0iddY2MEj3rMRwkYgtbzzdUZjmI8ROgA2g+XpQ73hm1EKPDLc/puajJIIJ3jeDPlPKa56OngWNZuKYJYASI1G1NcFeITMZ00Og16V5dxTMPGc0D1La8456/hUdrE93bIXLrO/I7c6TVs0UvSBcZu+FVPhfUmTuWPLp4Qv40Hw641sMonNm9iIP61vjO8u3Apm5cchRAG/ICKuvB/hZi7tsNdvLZ/hC5m8ixBifKt1FtUjmc0nbKVbwTXboVULdYG8V0bhvZm6VVVtEA75tAPPXWrr2Y7I4fBr4FJcgBrjGWb35DyGlWCAK06N8sxevX2ooI7HYgaB0jzmsq+5qyq6MCOtMofcxDnfkOVepjiDrzqi9ne2ChVW46lflBdlRwdgGUwp06MfQbVZsXjAIYajlGsn/AAGp3Ibg0W7CYgiNdeVOHx7KBMH1H6Uh4EQ1tSdwJ19dKKe7LVongzoPfFFug+tROZqHP4TQ/BUZUJufMxZj5EkkCfIQPai8hQbgbgRoOv8An96K4jhLV4CSVYcxzHQ0i4pxazh/FcdVke5jWANzVI4z8SW1FhMymQGYQdNzofTcfpSc0io6bfB0HiuKweBtd7ecADadWYxICLzJ6D8BXMeO9tL2MugAG3hlMrb5sIgG6dQzSSQNhPMiapWOxb3iLlxu9eTJYknceHU6Afka1s4g3VIzm3oWnMYGoGUsNTJMaA+lZye7BvDTUcsfX7sOQdWbQKdYmPlkQpgSYqF8XdthkUhkbXwkDWCZzRmA/v50ntYzVQWM6ldBrqFI1JBBA221NNcTcsZjltHvFQEEnOgESch8IncgtO2mtYtZOhVRFEgkqQWGqyxJ1B331A2I2G3OguLcTyhspjNKknNOx1jYfKAKixd+LYKsxPeaKXLHaZMDeQNPTenHDewGIxbh7rGza/iH2jcyVQbA8i0elXCFvJGpqbVg5/3tT4HF924eAY5H86+puyfZjB2bBw62ENth4g6hs/UuW+Y/lyiswfwz4XaF0LhEIu6NnLPlHS2WMprrI1nnoI6sHDufJUeGYyzbw9shsyqoCZdnjQkeVI7iX+I3hZtGFO4BhVSYLP1jkOZrpd/4f4QiALiLAUKr+FQBAgEGKYcN4bhsGpS0gB3MCWY/xOdTvz2Fckfw7vPB1P8AEKschPC8FawtlbYhEQQJ5xufMk60HjOLOxIQ5V5HmfXpXl9jcJZvQDoOgoO4sCus5ALibs4hmZgNdWY6+hNIry1YbgpRibepqHkaBuHtDjWun8Ou5kHpXMktwwNdD4EPs19KUORsZmuSfFXBm3ilu6xdQa+aSCI9GBrrcVRvi3YBwtt+aXRHoysDpudY+lGsrgXoupo5NaIgDfeJ5HqK8VQdNzz/AM8q3S2C2xjrGunnQPG+LL3YsWrWoIDsGIIBKkjL+85gTpoCIO9ckFudHZN0rDv2NvvLkHV4Ee0knXoDW9vhxxl5LFs5WuMq5iJ2ALsRyOjGlGDx7ytu3Zm42UKoYlnJ0EDLvMbHnXbOx/ALXDbD4nFuouZQXckZbSxJRffcjeB0FaQg3Imc1GIy7P8AY3C4VVFuymYQc7CXLdcx1p/3cVU+x/b3CcRZlR8lwE5bVwBWZRs66+LTluOgq35SP0/SutexwO7yQXBFD3GqTFXSOX1oN5oA9JrKizCspDPmDtH2dxXD7otYlIDCVZSTbuLzytGsEjeCJG01FhcY6r9ndypz1II11kLr7ga/gPpPjvZ2zxDDnDXxCjxI4jNbcCAyz5TI2Ir557YdhcZw5ibiF7Mwt+2CbZEiMxHyHbwtz2nehxTLjqVyNOFdq8batsi3c0f+p9oCCdNRrMnQkwZA6UVhviDxAZlYWywbUMkERMrEyPTlFc7SGIzGBzPlufep8TjWY9Bt1YjlmPMxUdMvemdQxHxHxUEBU9YII201NIcf2+xlwEd+i76qoJH0mOWtUpsSzCGObzME/U61q10mJAkaTGvv6ULT8hvXZDW9xDOc7s1xz9+4SdfcnT0iiLVxioUsJOpykgBTyLSNZUGIPLnsjSIgkTOggztvO3Qb1ItyRM+JdRqPf8OVNxHGQ3tFmdiRJ1LHQbzqxOg299PSglIBE8jz8oj8PzqLvoKnMNgdCdYmOXQms7xZMhiI1gwRpryO2n0qVEpyC0bKUmJ01jqRJ18jTDGgZw5+VQRoPmIiI08vxNLAoEEMpEaZzHOCCpO436aGm2HskjM5fNEAyI3mCByk+9RLyXEFwuIKm25BhLiudI2YH8htXe8IQwBGxANcSfCqTcDsBAkDXUnkK6D8PeOG7Z7p9HtQvqseE/09qqDM9aOLOk4HEwRTpccp/wA96r/CGUjUA+tWK1bUjbzrVHMQYrEmBl3P4Dn70GLNH3LMGtClDAAKxQ95KZvboa6lSMTONKAxNrSm+Ms9KBuWpoAUsNau/Zo/ZgdNKpd1DMedXTs3/pg9f+P6UR5DsOqrHxGtK2AuFvutbYeudR+RI96s9Vn4k463Z4dfuXQGUKRlP3mIIQaagliuvLflVSVpocXTTOCcex3dJ4GAZ1zKZDACQOWknxHnHONKr/B8A91yFBLHXWTMnX3569DQ+Bt+EZyAqmRm5bxl2Mk61tfu3MjQGQ+AgDcJ4iWkciwXX0rGMKW1HQ5Z3P8A0dU4OcHwtBdvXFbEbyfEwA2W2g1nXVupOsVSu2/ba7jzk1SwDIUnVzyLxp0gf2ilhqmW5WtUqRndu2E2HZSCpIYGQVJBVhqCCNjPOux/D/4vkFcPxE6bLiAPb7Yf+Y9xzrjIbaKiY0lZo6ayfaKMrqCCGUiQQQQR1B51BdwIO2lfMnYL4jYnhrBBN3Dz4rTHbmTbP3TJnofxrv3ZTt/gcfAs3ctyJNq54bg9AdG/lJq0zCUK4G54YKymNe06IK/baBUtm8GBDAMDoQRIIO4IO4pRwTjNnFWhdsuHU9NwehG4PkaLTQ0gKf2r+DWCxJNzCt+y3CPlAzWSf9syvTwmPLryLtF8N+JYOTcw7XLY/wD6WPtF9Tl8SjzYCvpqy9SvicomadgfG9myzmEUseigk/QVf+xvwqxGLXvL7nDJMBWQm6wG5ykjKOQJ9Yjf6Hs3rYmFVSdTlAEnmTG5rW4OhpWFsqXBfhZwvDxNjvmj5r7F5/k0T/41Y73ZnBPh/wBlbDWu4gwgUKFJ3ZCNVbnI1mpSSNTQh4kMwA6xRYHFPiX8ORgSL2HS9cwv3iSrd2ZEBiBIUzGo0gamdOfd4VBAgFtTPIToNf8ANq+t7Dq4a3cAZWBVlPysp0II5iDXz328+Hl/h95nRc+FZi1u4Nco1OS6SQVZRz2Ya9QB8WXFvgQdn7YLHMzEkRoRlj0E7elP8PfZwFSBbSQ5KiSYkMNIjlpVbW4BqJYgz9mRI9x/TWt0xwT7vmQTc958QH41zyi27OmLSVMbX7hzd1KqpEkkidOgmRTz4e4C5cxy5JVbSlrx3DAyEX1J19FNUe/xQOQCg05kkR6EGR9a6n8Ju0mEWybAOXEMxLBh84AAUq3MZeWms9acYU7ZGpO06L/Yu5J5xROE4q2cdTS/Ess7iTrHP/NR9a24NYLXSegrTuc5cbGJDDxfhW8A7UvRIqRGM1ViCLi0LdWi2odqAAbqUHesxrTC6aEvCdKAFVnCG4wAG536VdMJZCqANKW8KwYXU7mm4ahIDauQ/wD1D8c7uzhsOCCz3DdZf4UBUT/M0jzXyrrjOACSYA1noK+XPiHxL9v4jdvNItD7O0Spy92hIBDAQQxLN/NQ2u5cE28FJvYhm3P6c+XvXpxLzOYyNiNIERAjbTSmtjAWyfmO4EE2gdemaisV2eAiC08/s2Yf9VqRU9SKwX0psrc1sGp9f7P5VBLJJ2HeBGP8twCKgucCbJnCuB5RcHsbelPqRYPRmuwrF2sL0anB2IkMoG3jPd6/zb1qnCLhOUKSf4Srf9p1p7o+RVPwBlq9Dee3SjBwvWCzKf4rbAe5rZ+EEbOjDSTnyxO0hwKW6I9syW12lxagKuKxAA2Av3QPoGrKmHZ0/wAR9O7I9jmryp6kPJfT1PAfwLitzB3Q+FujvD89rU2nHME7A+ekV1/sl8RMLi4tue5vn7jnRv8AY+zfgfKuN3OLoBGe646FnKiP3c4agsVi7bfMCdIGZ2cj66ChNkyjFn1NYaTpUfEBIivm7gHb/GYNvsrrPbkfZXiXWByUkyunSK6Zwn4u4S8VW8r2GI1LAG3PQMuvuQKsxovLyFEGtlxDaH2NLbHabB3NLeJsuY2FxJ+k0ThsVba2HDKQZ2IqKKJ710lTOopdftSNNNtqNt421BBuJ/1D9aW47tNgbaMbmKtKQPlzgsfRRJP0ppCGeGdtCff8qfWcXbZCLkZY1zREec1xzG/FqwoKWLbXTyZ/AnqZlvaBVT4v2rvYggX77BOiALb/APb1a5r1JHoad7RxhuNu2eGsW8Rct4Rw9piWBIBEmSyofvqNIbz5nUo+HcILJc10QEseYgZiFG0x+JozEZAxu/KDs0t31z2kBB5ensNZxMvmghRsNTrsCSv3vWaxy1g6vSmLbfB3aYgc9SdB1Jj/ACDQsMpDqSCNmWREbHypqceczCT4tYmBGoGYDSNhFAd5IK7jXXUk/wCaVqnLuYSUexeOy3xGhgMXqdB3ij/uUbeo+ldj7HY+3fzXbbq6Dw+EgwdzPTlXy61nUg6QNRoKI4Pxi/hbneYe61p4iVO46EbMPIint8EP3PsC9pUKNrXIey3xlVwExwyEAAXUUlW83UaqfSR6V1Hh/EbV5Bcs3EuKfvIwI/CmTQ0W5UgUEUssYiSfLemNtxApiIbuErQ4AEee9HK0zWqvQIitLFTC5S/i/F7GGQ3L91Lajm5AnyA3J8hXLO1vbrE4q2yYFXtWiP8AWIIu3F1B7pAJUaRO/SN6TaXJUYuXAx+KnbVMr4Ky7QdL9y2M0D/0hG5P3ug03OnLcAndsq22B03zhXA1I8DA/wBvajOD2beJt93dlLiLAcEC4GUnR8okCNIJkR9PblprbDNF1JhWAm5bHMluXPVT+dc0pbm0d8IKCT/cy+ASfCysAPHesrcVoOpVkB156RHIVFbw9l8zJbW4dP8ASulCSImQygFtegOtGnhQVGu4NlEkHMjLcCdViDA122mK9xdzD3FyXg1s6eNkXuXadyU1BOvLTWpSXb5+n9lN/P7/AKAMVdK5Abl1M8KFuZnXNI6nwncaiD+NbrhXZ5IQoIKm3mSBrOYKfTkaN7+4glEtXrSj5cuUEg+HK6KPL5hM+tDMLT3QSO5vAbMWLCeYbKCdecEb0e/z/ofmQ3rkh7as9qIOa5DJrmPOZGnSdaHuIQD3aJc2LC0TJ6kBIn3APWmLvdtLLr+0kk5c5yGPIqsyPXr6UtuGwxa2FayQc3iiBOvzB9R7eXlTS+fMg3XPz+Ddb4tAEftEnaCpG/MSWiPXnUV64s5rlwPDGC9sCdt2iI3MggmdfIy/w66pDAo9mBJC2lXbZcinLI8p5mtLNy2FOtzDGYDsoe1M8iQSB5yfQU6RLlWAXFYByxKWUK6ffy6wJESdjI9qynmFwd0oCRhbpOudVw8N5ibdZR+q/cV+xWL3Zl8uZ2CjoiXLh98oMe8VsvZZcoY3Lh/hFolj7ZoUeZNN7OIZwVyPbtqPn7wFvqNAf5tedDYa84bLYW3JIkh1uXDBMZmzZZ1O4NHUn5F04c0DDs7hwYuubPTNcts7a8rSgR/1HevMX2bRQIATQEZrjXLjjqtq3alZ5ZjHmd6smKuXVCg+Cdm7sP4uQzsvdr7SaixeLazlUo95z9642QMZ2Ags/wBAOlJakh9OAkbsnaVFd7rpoPswitdZjuACyqo8ySfLlXuE7NYdzqXVpIW0biF20kZiqZbY9ztT3Hvat2w121h7NxoPyPmJgx4UOZvqtQ2MTbtrmuW8xPyhbSjYbheWsfMxo6kmuQ6cE+BLe7L2lJD3paYy2Ee4lrl9pdbKNOcHltyqe92Vt2l8KviGMAMxFq1mMQqicztqNusVYD3RtDE3AUA+Vb10kMdgBaVSJ9AahxN1Blu3xluGSgTMWgbZVmVA01zATyG1LqyYLSghdj+ztiwiZ4t3GE5Xl3/ltoWAWZALHluTtta4Slu0L7tmJjItsAXF5gsw0tiN9DE8zoCr9i44W7OUMYVXeC5A+bwAs3h5HaN6iFoG4Ld26mZNSToEPRcx+byHTrStvuWopdgHH4FFtlnTLdY655ZhIJ0DeJmiNY06DStuJ8MFkW0Y5nMnLb1VBsWaPmI1gevu6XDpcBd2VtsmfNmaZPi8OksdhPPWhsPYCOUZkW42pacqoOQnTlMAa7GlvYdNMruN4KWzXLahbSmGdyRr/FOvTluY8qU907ANlZjrAAPhUc9NhyroGFa2SbQlkB8CrqDAMmAIGp03qL9mYWrj3AMrGPu69FUDSOX1rRazSM3oJ9zn2KsFYLADNyEyPWf1qEtM5RoPqPU10HEcNseANFyTqEZTlH7q8yT+QNe4nhKsbr93CDKoBgZRsBA+9J/Kq+oXgn6V+TnNE8P4jesNms3XtN1RipPrG9X7Ddn8JbFslVuMwObxNIY5cqxB5k/ShbnYdTcdTKwpub7A5iANOgNV9RHuR9NLswDA/EviVuftg4PJ0Q+8gA/jTvC/GnHKIa3Yb+V1P4NUPEOyeEK2+7YrprMkkmI9edCYXsQPC7Ei33httn8J0Da79VH1o60KsX08/Yaf/mziHK3hx6o50/66XY/4pcTxG14WRz7lAP8A5NJ/EUdiezmCVIykFCczzoygRpvzAP1rfCdlFeGVMifOswe8t6AyMu++nLSl141wV9O77FXwGGvYm9ncvciDmvFmJGp3J2JBjWrfw7Kzmw0vcQzufCCARyGaJnRjvTS+Rh7UW7QKJ8sghrkiAkAidTAFZ2b4eyI192+0uSWOXLFyPCChJAI05cqwlqN5N4xUcFVCtZxMXybQcko1vNbU67wWIB5kEE6+9WS/hYynMDp825OrbwNTy0I9JMmHtRhmKWw1whnvIRoyLnkksSFgaTrB3po+H8DC5KlWTxGCWENEzpyOoFOTygjiyocQwz2byMjKytoERsmU/wACNcAJ2md6dcRw1tkRykzKtmE+IREqdBz9d/UftPh7YtoUIa4HUgFkk6NIAZcpOWfmnaneEwmawGyzmI8IG2mvhiFPlt0ilJ5Q1iylsWsXVa25yuSGU5WAnkqllCryjNzAptjOHI1vvRbLKDkcOiDITGureETA5iSN6ztcFtoqMYzOBMWmCka622IDDenNi1/+oGI1BVT4dCNYyjkPInTlTk3aoSfJU7GFuWAHsyLcGUEP3hEmAxRgD/xpRa3LV8BVbu7h0NlmVSTA0C7g/UbaCKDuzgr+ZF+yu6mYEGdQQWygdNJpxxbhlu6ovBipaPGmYsp3yyv3dDoZ/Kqf3fySuBbZwt/Dy1o5FC62WgZ+o8YJ+g196nweMsXxlIFt4Oa0z5lP8IG6HltHlQmF4k1thZxDFgZCMqyY65g2YHyAozjnBbaqWyyrnS8PmmJy5twRGxo5dPkOOAa9hRJ+xuL5KXAHoAQPpWUvd8SphDbyjaWcGPMBorKex/GG9eP2IruMZiEWymm3eMTHnlUgA/WmGAxVtPAoDYg/eCwieYBiY/OvayiSVNewcUyO7jxYdmd7uIvkQSxACaaQTMewrfgK2mLXmH2gkgAkk6c3IB1rKym0ttiX3UF2Xe9dZnNoL0VDv/ExGZtPatMI9vEXhluuEQ6kiE05BBJbbdhXtZWdc+w26S9zLlzv7ga3YVl2D3TLkcsiyFt61JxLMr27bXSpbLCKPmjXxtpCzOgNZWUV6q/MbdKz3jWNRL6jL3l5QoJJZUQETFtRzM7k1NisI10lbC5FUZnaQHYkSxLat9KyspTW2KaBO2e4C0t2018ue7tMzeAEEnRCBOsch6mosHi7DF3a1Nwz3akswJ5F2On/ABXtZVqCyLe8GuDF0W3uGPF4Mx+aWMAKBAXoOk0VxG2tkWsO5ZgMrMZMIsaKi7HTST1rKyoirZbZL3gbFB7FtcqooQOBHKTlHMkxJ5Ctf2RmtXnLsQHJZM5yu87n+Y1lZU96B8E1rFFbKJaWHDqzMcoBgQvOfmJP0qLjfeK+YuGusJgCBA01P9Kysql99A1iw626o9vIMzKCSSIJOmx6aHlUOMe53V69lV87l8pJgtqR9OtZWU2kqEnYytpbtXLLuSQUYFYlcxyQQvpmHvWWbrOVtDwm2DyGik7c52/CsrKn/Gw7gJtrdFlcxN6VvCdFGVwdgI2096mxnFdXDsPmLMoVozBQOUdKysq4LNEt4BOCTi7i3QMqqpRcpZSDMnOMxzTRWI4wQAxUgIApPhJ3jmpNZWU0vUxX6UA4e0cVeFu+XS6CXssrBrbqNCrpGhgnXz0ovieOtglEJKppAABB2IlgZ1rKylD1ZZU1tdITWcal+8tpGe0y6i4pBKt0ylMpBnzp9xHEzhkLBO97xkcZfCcpZcwGwmAfevaynXrohv02Vfjd649l0EGYOUBVG/py6Uy4ZiAbGR8OFusuWFKqjMBoYWYaKyso1C4RxYkx2BN23lGVcwDAxMgHUEaCasvD8Nfu2O5uXM6ysEAKQYlDzke4NZWUSyLgjwvZZriB1VQCPvMSZGh1nqDWVlZTI3H/2Q==" alt="Coconut palm trees" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🥥 Coconut</h3>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Year Round</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">Called the "Tree of Life" because every part is useful. Grows near the coast in tropical areas. Kerala is the biggest coconut producing state in India.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">27 – 38°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">100 – 300 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.0 – 8.0</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">Medium 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grapes -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400&h=200&fit=crop&q=80" alt="Grape vineyard bunches" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🍇 Grapes</h3>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Rabi</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">Mostly grown in Maharashtra and Karnataka. Needs a lot of phosphorus in the soil. Used for making juice, raisins and wine. A very profitable cash crop.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">8 – 45°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">55 – 125 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.5 – 7.0</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">Medium 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banana -->
+            <div class="crop-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-hidden h-44">
+                    <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=200&fit=crop&q=80" alt="Banana plantation" class="card-img w-full h-44 object-cover">
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800">🍌 Banana</h3>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Year Round</span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed mb-3">One of the most eaten fruits in India. Grows all year in warm states. Very nutritious, easy to grow, and gives quick income to farmers in Tamil Nadu and Maharashtra.</p>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500"><span>Temperature</span><span class="font-semibold text-gray-700">25 – 40°C</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Rainfall</span><span class="font-semibold text-gray-700">100 – 200 mm</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Soil pH</span><span class="font-semibold text-gray-700">5.5 – 7.0</span></div>
+                        <div class="flex justify-between text-gray-500"><span>Water Need</span><span class="font-semibold text-blue-600">High 💧</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- seasonal info -->
+<section class="max-w-6xl mx-auto px-4 py-14">
+    <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">📅 Planting Guide</p>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">When to Grow What?</h2>
+    <p class="text-gray-500 text-sm mb-8">India has 3 main farming seasons. Choosing the right season for your crop is one of the most important decisions a farmer makes.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-green-50 border border-green-200 rounded-2xl p-6">
+            <div class="text-4xl mb-3">☀️</div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">Kharif Season</h3>
+            <p class="text-green-700 text-xs font-semibold mb-3">JUNE TO NOVEMBER</p>
+            <p class="text-gray-600 text-sm mb-4 leading-relaxed">Sown when the monsoon starts, harvested before winter. These crops love heat and heavy rain.</p>
+            <div class="flex flex-wrap gap-1.5">
+                <span class="bg-white text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">🌾 Rice</span>
+                <span class="bg-white text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">🌽 Maize</span>
+                <span class="bg-white text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">🌸 Cotton</span>
+                <span class="bg-white text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">🌿 Jute</span>
+                <span class="bg-white text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">🍌 Banana</span>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+            <div class="text-4xl mb-3">❄️</div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">Rabi Season</h3>
+            <p class="text-blue-600 text-xs font-semibold mb-3">OCTOBER TO MARCH</p>
+            <p class="text-gray-600 text-sm mb-4 leading-relaxed">Grown in the cool winter months after the monsoon. Needs irrigation since rainfall is low during this time.</p>
+            <div class="flex flex-wrap gap-1.5">
+                <span class="bg-white text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">🫘 Chickpea</span>
+                <span class="bg-white text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">🫘 Lentil</span>
+                <span class="bg-white text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">🍇 Grapes</span>
+                <span class="bg-white text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">🍎 Apple</span>
+                <span class="bg-white text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">🍊 Orange</span>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+            <div class="text-4xl mb-3">🌸</div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">Zaid Season</h3>
+            <p class="text-yellow-600 text-xs font-semibold mb-3">MARCH TO JUNE</p>
+            <p class="text-gray-600 text-sm mb-4 leading-relaxed">A short season between Rabi and Kharif. Crops that grow fast and do well in hot, dry summer conditions.</p>
+            <div class="flex flex-wrap gap-1.5">
+                <span class="bg-white text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">🍉 Watermelon</span>
+                <span class="bg-white text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">🍈 Muskmelon</span>
+                <span class="bg-white text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">🥭 Mango</span>
+                <span class="bg-white text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">🍑 Papaya</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- farming tips-->
+<section class="bg-gray-50 border-t border-gray-100 py-14">
+    <div class="max-w-6xl mx-auto px-4">
+        <p class="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">💡 Smart Farming</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Useful Tips for Every Farmer</h2>
+        <p class="text-gray-500 text-sm mb-8">Small things that can make a big difference to your harvest</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-xl mb-3">💧</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Drip Irrigation Saves Water</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Using drip irrigation instead of flood irrigation can save up to 50% water. The water goes straight to the roots, and there are fewer weeds growing too.</p>
+            </div>
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl mb-3">🔄</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Rotate Your Crops Every Season</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Never grow the same crop in the same field twice in a row. Rotating crops stops pests from building up and keeps the soil naturally healthy without extra fertiliser.</p>
+            </div>
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-xl mb-3">🌡️</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Check Soil Temperature Before Sowing</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Seeds only sprout when the soil is warm enough — around 15 to 25°C for most crops. Planting in cold soil means seeds rot or don't grow properly.</p>
+            </div>
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl mb-3">🍂</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Add Compost to Improve Soil</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Even a thin layer of compost on your field can make a big difference. It improves water holding, adds nutrients slowly, and feeds the tiny organisms that keep your soil alive.</p>
+            </div>
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-xl mb-3">🐛</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Use Less Pesticide When Possible</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Try neem oil or natural methods first before using chemical sprays. This saves money and does not damage the soil for your next crop season.</p>
+            </div>
+            <div class="tip-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl mb-3">🧪</div>
+                <h4 class="font-bold text-gray-800 text-sm mb-2">Test Your Soil Regularly</h4>
+                <p class="text-gray-500 text-xs leading-relaxed">Getting a soil test done every 2 to 3 years tells you exactly what nutrients are missing. Applying fertiliser without knowing what you need is just wasting money.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- recent predictions -->
+{% if recent %}
+<section class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-800">🕐 Recent Predictions</h2>
+        <a href="/history/" class="text-sm text-green-600 hover:underline">See all →</a>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-green-600 text-white text-xs uppercase">
+                <tr>
+                    <th class="px-5 py-3 text-left">Crop</th>
+                    <th class="px-5 py-3 text-center">Confidence</th>
+                    <th class="px-5 py-3 text-center hidden sm:table-cell">N / P / K</th>
+                    <th class="px-5 py-3 text-center hidden sm:table-cell">Temp</th>
+                    <th class="px-5 py-3 text-left">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for p in recent %}
+                <tr class="hover:bg-green-50 transition-colors">
+                    <td class="px-5 py-3 font-semibold text-gray-800 capitalize">{{ p.crop_name }}</td>
+                    <td class="px-5 py-3 text-center">
+                        {% if p.confidence %}
+                            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">{{ p.confidence }}%</span>
+                        {% else %}<span class="text-gray-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-5 py-3 text-center text-gray-500 text-xs hidden sm:table-cell">{{ p.nitrogen }} / {{ p.phosphorus }} / {{ p.potassium }}</td>
+                    <td class="px-5 py-3 text-center text-gray-500 hidden sm:table-cell">{{ p.temperature }}°C</td>
+                    <td class="px-5 py-3 text-gray-400 text-xs">{{ p.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+
+<!--footer -->
+<footer class="bg-gray-800 text-gray-300 py-12 px-4">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">🌾</div>
+                <span class="text-white font-bold text-lg">Smart Harvest</span>
+            </div>
+            <p class="text-gray-400 text-sm leading-relaxed">A machine learning crop recommendation system made to help farmers grow the right crop at the right time.</p>
+        </div>
+
+        <div>
+            <h4 class="text-white font-semibold mb-3">Quick Links</h4>
+            <div class="space-y-2 text-sm">
+                <a href="/"         class="block hover:text-green-400 transition-colors">🏠 Home</a>
+                <a href="/history/" class="block hover:text-green-400 transition-colors">📋 History</a>
+                <a href="/about/"   class="block hover:text-green-400 transition-colors">ℹ️ About</a>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-white font-semibold mb-3">📬 Contact Us</h4>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">✉️</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Email</p>
+                        <a href="mailto:info@smartharvest.in" class="hover:text-green-400 transition-colors text-xs">info@smartharvest.in</a>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">📞</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Phone</p>
+                        <a href="tel:+91123456789" class="hover:text-green-400 transition-colors text-xs">+91 123-456-789</a>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">📍</span>
+                    <div>
+                        <p class="text-gray-400 text-xs mb-0.5">Location</p>
+                        <p class="text-gray-300 text-xs">Phagwara, Punjab, India</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="max-w-6xl mx-auto border-t border-gray-700 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p class="text-gray-500 text-xs">© 2026 Smart Harvest. All rights reserved.</p>
+        <div class="flex gap-4 text-xs text-gray-500">
+            <a href="#" class="hover:text-green-400 transition-colors">Privacy Policy</a>
+            <a href="#" class="hover:text-green-400 transition-colors">Terms of Use</a>
+        </div>
+    </div>
+</footer>
+
+
+<!-- JS -->
+<script>
+
+// getting the CSRF token from the browser cookie
+function getCsrfToken() {
+    var token = null;
+    document.cookie.split(';').forEach(function(cookie) {
+        cookie = cookie.trim();
+        if (cookie.startsWith('csrftoken=')) {
+            token = cookie.split('=')[1];
+        }
+    });
+    return token;
+}
+
+// fill form fields when user clicks on a sample crop button
+function fillForm(n, p, k, temp, hum, ph, rain) {
+    document.getElementById('nitrogen').value    = n;
+    document.getElementById('phosphorus').value  = p;
+    document.getElementById('potassium').value   = k;
+    document.getElementById('temperature').value = temp;
+    document.getElementById('humidity').value    = hum;
+    document.getElementById('ph').value          = ph;
+    document.getElementById('rainfall').value    = rain;
+    document.getElementById('cropForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// shows one panel and hide all the others
+function showPanel(name) {
+    var panels = ['defaultPanel', 'loadingPanel', 'resultPanel', 'errorPanel'];
+    panels.forEach(function(id) {
+        if (id === name) {
+            document.getElementById(id).classList.remove('hidden');
+        } else {
+            document.getElementById(id).classList.add('hidden');
+        }
+    });
+}
+
+// resets form and go back to start
+function resetForm() {
+    document.getElementById('cropForm').reset();
+    showPanel('defaultPanel');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// form submit — send data to API
+document.getElementById('cropForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    showPanel('loadingPanel');
+    document.getElementById('btnText').textContent = 'Checking...';
+    document.getElementById('spinner').classList.remove('hidden');
+    document.getElementById('submitBtn').disabled = true;
+
+    var data = {
+        nitrogen:    document.getElementById('nitrogen').value,
+        phosphorus:  document.getElementById('phosphorus').value,
+        potassium:   document.getElementById('potassium').value,
+        temperature: document.getElementById('temperature').value,
+        humidity:    document.getElementById('humidity').value,
+        ph:          document.getElementById('ph').value,
+        rainfall:    document.getElementById('rainfall').value,
+    };
+
+    fetch('/api/predict/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
+        if (result.error) {
+            document.getElementById('errorMsg').textContent = result.error;
+            showPanel('errorPanel');
+            return;
+        }
+
+        document.getElementById('resEmoji').textContent  = result.emoji  || '🌱';
+        document.getElementById('resCrop').textContent   = result.crop;
+        document.getElementById('resSeason').textContent = result.season || '—';
+        document.getElementById('resWater').textContent  = result.water  || '—';
+        document.getElementById('resTip').textContent    = '💡 ' + result.tip;
+
+        if (result.confidence) {
+            document.getElementById('confText').textContent = result.confidence + '%';
+            var bar = document.getElementById('confBar');
+            bar.style.width = '0%';
+            setTimeout(function() {
+                bar.style.width = Math.min(result.confidence, 100) + '%';
+            }, 100);
+        } else {
+            document.getElementById('confSection').classList.add('hidden');
+        }
+
+        showPanel('resultPanel');
+    })
+    .catch(function(err) {
+        document.getElementById('errorMsg').textContent = 'Could not reach server. Is Django running?';
+        showPanel('errorPanel');
+    })
+    .finally(function() {
+        document.getElementById('btnText').textContent = '🌾 Get Crop Recommendation';
+        document.getElementById('spinner').classList.add('hidden');
+        document.getElementById('submitBtn').disabled = false;
+    });
+});
+
+</script>
+</body>
+</html>

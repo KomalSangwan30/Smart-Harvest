@@ -1,0 +1,7 @@
+Best Model: Random Forest
+Best Accuracy: 95.23%
+
+All Results:
+  Logistic Regression: 90.45%
+  K-Nearest Neighbors: 90.45%
+  Random Forest: 95.23%
